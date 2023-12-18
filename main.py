@@ -1,35 +1,68 @@
+import pygame
+import sys
 from os import path
-import numpy as np
-import cv2
+import bard
 
-class Piece:
-    def __init__(self, color = 'WHITE', name = '', decal = None, scope = [], value = 0):
-        self.color = color
-        self.name = name
-        self.decal = decal
-        self.scope = scope
-        self.value = value
-class PieceMap:
-    def __init__(self, path):
-        self.path = path
-        self.map = cv2.imread(path)
-        self.HEIGHT = self.map.shape[0]
-        self.WIDTH = self.map.shape[1]
-        self.sqrSize = 60
-        self.pieces = []
-        pieces_names = [
-            #(piece)
-            ("B_Qn"), ("B_Kg"), ("B_Rk"), ("B_K8"), ("B_Bp"), ("B_Pn"),
-            ("W_Qn"), ("W_Kg"), ("W_Rk"), ("W_K8"), ("W_Bp"), ("W_Pn")
-        ]
-        for y in range(0, 120, self.sqrSize):
-            for x in range(0, 360, self.sqrSize):
-                self.pieces.append((self.map[y : y + self.sqrSize-1 , x : x + self.sqrSize-1]))
-        for piece in self.pieces:
-            print(piece.shape[:2])
+# Constants
+WIDTH, HEIGHT = 800, 800
+BOARD_SIZE = 8
+SQUARE_SIZE = WIDTH // BOARD_SIZE
 
-#
+# Colors
+WHITE = (186, 202, 68)
+BLACK = (0, 68, 116)
 
-pcsMap = PieceMap(path.join('src','ChessPiecesArray.png'))
-print(pcsMap.map.shape[0])
-print(pcsMap.map.shape[1])
+# Initialize Pygame
+pygame.init()
+
+# Initialize the screen
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Chess Board")
+
+# Load knight image
+knight_image = pygame.image.load(path.join('src','knight.png'))
+knight_image = pygame.transform.scale(knight_image, (SQUARE_SIZE, SQUARE_SIZE)).convert_alpha()
+
+# Function to draw the chess board
+def draw_chess_board(knight, move_number):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    for row in range(BOARD_SIZE):
+        for col in range(BOARD_SIZE):
+            color = WHITE if (row + col) % 2 == 0 else BLACK
+            pygame.draw.rect(screen, color, (col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+
+    x, y = knight
+    screen.blit(knight_image, (x * SQUARE_SIZE, y * SQUARE_SIZE))
+
+    font = pygame.font.Font(None, 36)
+    text = font.render(str(move_number), True, (255, 255, 255))
+    screen.blit(text, (x * SQUARE_SIZE + SQUARE_SIZE // 3, y * SQUARE_SIZE + SQUARE_SIZE // 3))
+
+    pygame.display.flip()
+
+# Main loop
+running = True
+bard.max_generations=1000
+tour = bard.knights_tour()
+move_number = 0
+
+while running and move_number < BOARD_SIZE ** 2:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Draw the chess board with the knight's tour
+    draw_chess_board(tour[move_number], move_number)
+
+    # Add a delay to slow down the animation
+    pygame.time.delay(500)
+
+    move_number += 1
+
+# Quit Pygame
+pygame.quit()
+sys.exit()

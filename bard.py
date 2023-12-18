@@ -1,5 +1,7 @@
 import random
 
+
+
 # Chromosome class
 class Chromosome:
     def __init__(self, genes=None):
@@ -23,7 +25,7 @@ class Knight:
     def __init__(self, chromosome=None):
         if chromosome is None:
             chromosome = Chromosome()
-        self.position = (0, 0) #(0,0)
+        self.position = start_pos #(0,0)
         self.chromosome = chromosome
         self.path = [self.position]
         self.fitness = 0
@@ -33,7 +35,8 @@ class Knight:
         new_position = (
             self.position[0] + moves[direction - 1][0],
             self.position[1] + moves[direction - 1][1])
-        self.position = new_position
+        if(0 <= new_position[0] <= 7 and 0 <= new_position[1] <= 7):
+            self.position = new_position
 
     def move_backward(self, direction):
         # Reverse the move_forward operation and update self.position
@@ -48,8 +51,8 @@ class Knight:
             # Update self.path accordingly.
             self.move_forward(move)
             self.path.append(self.position)
-            if 0 > self.position[0] > 7 or 0 > self.position[1] > 7:
-                self.move_backward()
+            if(not (0 <= self.position[0] <= 7)) or (not(0 <= self.position[1] <= 7)):
+                self.move_backward(move)
                 self.path.pop()
 
     def evaluate_fitness(self):
@@ -59,6 +62,7 @@ class Knight:
             # add to elite
             elite.append(self)
         return self.fitness
+
 # Population class
 class Population:
     def __init__(self, population_size):
@@ -89,7 +93,6 @@ class Population:
                 selected_knight1 = knight
             elif knight.fitness > selected_knight2.fitness:
                 selected_knight2 = knight
-        
         return selected_knight1, selected_knight2
 
     def create_new_generation(self):
@@ -104,6 +107,7 @@ class Population:
         self.knights = new_knights
         self.generation += 1
 
+start_pos = (4,3)
 population_size = 50
 mutation_probability = 0.05
 max_generations = 1000
@@ -114,20 +118,22 @@ moves = [(-1, 2), (1, 2),
 
 elite = []
 
-def main():
-    # Main function
-
+def knights_tour():
+    best_eval = 0
+    best_run = []
     population = Population(population_size)    
 
     for _ in range(max_generations):
+
         population.check_population()
         best_knight, highest_fitness = population.evaluate()
-        print(f"Generation {_}, evaluation: {highest_fitness}")
-        print(f"best Knight start: {best_knight.path}.")
+
+        # print(f"Generation {_}, evaluation: {highest_fitness}")
+        # print(f"best Knight start: {best_knight.path}.")
+
+        if highest_fitness > best_eval:
+            best_run = best_knight.path
         if highest_fitness == 64:
             break
         population.create_new_generation()
-        
-if __name__ == '__main__':
-    main()
-    
+    return best_run
